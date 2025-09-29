@@ -6,7 +6,7 @@ def ip_parser(line):            #define a function that has line as a parameter
             anchor = parts.index("from")     #find where from is -> this is the anchor
             ip = parts[anchor+1]            #the ip is the next token
             return ip.strip()               #remove any punctuation
-
+ # gyat
         except (ValueError, IndexError):
             return None
         return None
