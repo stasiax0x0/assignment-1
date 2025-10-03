@@ -2,7 +2,7 @@ from collections import defaultdict     #for creating a dictionary (with default
 from datetime import datetime           #for parsing timestamps
 from datetime import timedelta
 
-LOGFILE= "sample_auth_small.log"
+LOGFILE= "CA1_project.log"
 #1.	Parse log files line by line (files provided).
 
 def parse_auth_line(line):              #function to parse a line from the auth log
@@ -74,15 +74,38 @@ print(f'Detected {len(incidents)} brute-force incidents {incidents}')
 
 #4.	Output results into a structured report.
 
-with open("report.txt", "w")as file:          #write the report to a file
+with open("report.pdf", "w")as file:          #write the report to a file
     file.write("BRUTE FORCE INCIDENTS REPORT\n\n")
-    file.write("Total failed login attempts per IP:\n")        #write hearder
+    file.write("Total failed login attempts per IP:\n")        #write header
     for ip, count in counts.items():
-        file.write(f"    {ip}:  , {count} failed attempts\n")
+        file.write(f"    {ip}: {count} failed attempts\n")
 
-    file.write(f'Detected {len(incidents)} brute-force incidents: \n\n') 
+    file.write(f'Detected {len(incidents)} brute-force incidents \n\n') 
     for i, incidents in enumerate(incidents,1):
         file.write(f'Incident {i}: \n')
         file.write(f'IP: {incidents["ip"]}\n')
         file.write(f'Failed Attempts: {incidents["count"]}\n')
         file.write(f'Time Window: {incidents['first']} to {incidents['last']}\n\n')
+
+
+#ADDITIONAL FEATURES
+#7.	Visualise findings (bar chart of attacker IPs).
+# --- Optional: Plot bar chart of top 10 attacker IPs ---
+import matplotlib.pyplot as plt     # import plotting library
+
+# Get top 10 IPs and their counts
+allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:16]  # get up to 10 IPs with most failed attempts
+ips = [ip for ip, _ in allips]       # list of IPs for the chart, underscore _ means we ignore the second value
+top_counts = [count for _, count in allips] # list of counts for the chart
+
+plt.figure(figsize=(16,5)) # set size of chart
+plt.bar(ips, top_counts, color=["#FFB6C1", "#FF69B4"]) # create bar chart
+plt.title("Total failed login attempts per IP", fontweight='bold', fontsize=14 ) # set title and labels
+plt.xlabel("IP", fontweight='bold', fontsize=12)    # set x-axis label
+plt.ylabel("Failed attempts", fontweight='bold', fontsize=12) # set y-axis label
+plt.xticks(rotation=45) # rotate ip labels for readability
+plt.tight_layout() # adjust layout to fit everything
+plt.savefig("top_attackers.png")                         # save chart as image file
+plt.show()                                              # display the chart
+
+print("Bar chart saved to top_attackers.png")           # notify user chart is saved
