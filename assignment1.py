@@ -1,6 +1,10 @@
 from collections import defaultdict     #for creating a dictionary (with default default values) of lists
 from datetime import datetime           #for parsing timestamps
 from datetime import timedelta
+import docx                             # import
+from docx import Document
+from docx.shared import Inches
+from docx.shared import RGBColor
 
 LOGFILE= "CA1_project.log"
 #1.	Parse log files line by line (files provided).
@@ -72,26 +76,14 @@ for ip, times in per_ip_timestamps.items():                             #for eac
 print(f'Detected {len(incidents)} brute-force incidents {incidents}')
 
 
-#4.	Output results into a structured report.
 
-with open("report.rtf", "w")as file:                            #write the report to a file
-    file.write("BRUTE FORCE INCIDENTS REPORT\n\n")
-    file.write("Total failed login attempts per IP:\n")        #write header
-    for ip, count in counts.items():
-        file.write(f"    {ip}: {count} failed attempts\n")
-
-    file.write(f'Detected {len(incidents)} brute-force incidents \n\n') 
-    for i, incidents in enumerate(incidents,1):
-        file.write(f'Incident {i}: \n')
-        file.write(f'IP: {incidents["ip"]}\n')
-        file.write(f'Failed Attempts: {incidents["count"]}\n')
-        file.write(f'Time Window: {incidents['first']} to {incidents['last']}\n\n')
 
 
 #ADDITIONAL FEATURES
 #7.	Visualise findings (bar chart of attacker IPs).
 # --- Optional: Plot bar chart of tot incidents per ip ---
 import matplotlib.pyplot as plt     # import plotting library
+
 
 # Get top 10 IPs and their counts
 allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:16]              # get up to 10 IPs with most failed attempts
@@ -105,7 +97,45 @@ plt.xlabel("IP", fontweight='bold', fontsize=12)                                
 plt.ylabel("Failed attempts", fontweight='bold', fontsize=12)                       # set y-axis label
 plt.xticks(rotation=45)                                                             # rotate ip labels for readability
 plt.tight_layout()                                                                  # adjust layout to fit everything
-plt.savefig("top_attackers.png")                                                    # save chart as image file
+plt.savefig("failed_logins.png")                                                    # save chart as image file
 plt.show()                                                                          # display the chart
 
-print("Bar chart saved to top_attackers.png")                                       # notify user chart is saved
+print("Bar chart saved to top_attackers.png")                                        # notify user chart is saved
+
+
+#4.	Output results into a structured report.
+
+
+doc = Document()
+doc.add_heading("BRUTE FORCE INCIDENTS REPORT", 0)                      # add title to report
+                    #make it in bold
+p = doc.add_paragraph()
+run = p.add_run("Total failed login attempts per IP:")
+run.bold = True
+
+for ip, count in counts.items():
+    doc.add_paragraph(f"{ip}:   {count} failed attempts")
+
+
+    #make the number of incidents bold
+p = doc.add_paragraph()
+run = p.add_run("Detected {} brute-force incidents".format(len(incidents)))
+run.bold = True
+run.font.color.rgb = RGBColor(255, 0, 0)  # RGB for red
+doc.add_paragraph(" \n\n")
+
+p = doc.add_paragraph()
+run = p.add_run("Total failed login attempts per IP BAR CHART:")
+run.bold = True
+doc.add_picture('failed_logins.png', width=Inches(7))
+
+
+for i, incident in enumerate(incidents, 1):
+    p = doc.add_paragraph()
+    run = p.add_run(f'Incident {i}:')
+    run.bold = True
+    doc.add_paragraph(f'IP: {incident["ip"]}')
+    doc.add_paragraph(f'Failed Attempts: {incident["count"]}')
+    doc.add_paragraph(f'Time Window: {incident["first"]} to {incident["last"]}\n\n')
+
+doc.save('report.docx')
