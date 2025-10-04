@@ -100,7 +100,7 @@ plt.tight_layout()                                                              
 plt.savefig("failed_logins.png")                                                    # save chart as image file
 plt.show()                                                                          # display the chart
 
-print("Bar chart saved to top_attackers.png")                                        # notify user chart is saved
+print("Bar chart saved to failed_logins.png")                                        # notify user chart is saved
 
 
 #4.	Output results into a structured report.
