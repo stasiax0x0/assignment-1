@@ -74,7 +74,7 @@ print(f'Detected {len(incidents)} brute-force incidents {incidents}')
 
 #4.	Output results into a structured report.
 
-with open("report.pdf", "w")as file:          #write the report to a file
+with open("report.rtf", "w")as file:                            #write the report to a file
     file.write("BRUTE FORCE INCIDENTS REPORT\n\n")
     file.write("Total failed login attempts per IP:\n")        #write header
     for ip, count in counts.items():
@@ -90,22 +90,22 @@ with open("report.pdf", "w")as file:          #write the report to a file
 
 #ADDITIONAL FEATURES
 #7.	Visualise findings (bar chart of attacker IPs).
-# --- Optional: Plot bar chart of top 10 attacker IPs ---
+# --- Optional: Plot bar chart of tot incidents per ip ---
 import matplotlib.pyplot as plt     # import plotting library
 
 # Get top 10 IPs and their counts
-allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:16]  # get up to 10 IPs with most failed attempts
-ips = [ip for ip, _ in allips]       # list of IPs for the chart, underscore _ means we ignore the second value
-top_counts = [count for _, count in allips] # list of counts for the chart
+allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:16]              # get up to 10 IPs with most failed attempts
+ips = [ip for ip, _ in allips]                                                      # list of IPs for the chart, underscore _ means we ignore the second value
+top_counts = [count for _, count in allips]                                         # list of counts for the chart
 
-plt.figure(figsize=(16,5)) # set size of chart
-plt.bar(ips, top_counts, color=["#FFB6C1", "#FF69B4"]) # create bar chart
-plt.title("Total failed login attempts per IP", fontweight='bold', fontsize=14 ) # set title and labels
-plt.xlabel("IP", fontweight='bold', fontsize=12)    # set x-axis label
-plt.ylabel("Failed attempts", fontweight='bold', fontsize=12) # set y-axis label
-plt.xticks(rotation=45) # rotate ip labels for readability
-plt.tight_layout() # adjust layout to fit everything
-plt.savefig("top_attackers.png")                         # save chart as image file
-plt.show()                                              # display the chart
+plt.figure(figsize=(16,5))                                                          # set size of chart
+plt.bar(ips, top_counts, color=["#FFB6C1", "#FF69B4"])                              # create bar chart and sets the colors
+plt.title("Total failed login attempts per IP", fontweight='bold', fontsize=14 )    # set title and labels
+plt.xlabel("IP", fontweight='bold', fontsize=12)                                    # set x-axis label
+plt.ylabel("Failed attempts", fontweight='bold', fontsize=12)                       # set y-axis label
+plt.xticks(rotation=45)                                                             # rotate ip labels for readability
+plt.tight_layout()                                                                  # adjust layout to fit everything
+plt.savefig("top_attackers.png")                                                    # save chart as image file
+plt.show()                                                                          # display the chart
 
-print("Bar chart saved to top_attackers.png")           # notify user chart is saved
+print("Bar chart saved to top_attackers.png")                                       # notify user chart is saved
