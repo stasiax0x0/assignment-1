@@ -1,10 +1,13 @@
 from collections import defaultdict     #for creating a dictionary (with default default values) of lists
 from datetime import datetime           #for parsing timestamps
 from datetime import timedelta
-import docx                             # import
+import docx                                        # import
 from docx import Document
 from docx.shared import Inches
 from docx.shared import RGBColor
+from rich import print                      #pretty printing
+from rich.console import Console           #for pretty printing to console
+from rich.table import Table             #for pretty printing tables
 
 LOGFILE= "CA1_project.log"
 #1.	Parse log files line by line (files provided).
@@ -45,7 +48,9 @@ if __name__ == "__main__":
                 counts[ip] += 1
             if ts:                                          #checks that ts is not null
                 per_ip_timestamps[ip].append(ts)            #add the timestamp to the list for this IP
-    print("Failed login attempts: ", dict(counts))
+    console = Console()                                     #create a console object for pretty printing
+    console.print("[bold red]Failed login attempts: [/bold red]", dict(counts))  #pretty print the counts dictionary in bold red
+
 print("")
 
 #3.	Identify possible brute-force attacks (≥ 5 failed logins from one IP within 10 minutes).
@@ -53,6 +58,8 @@ print("")
 incidents = []                                                          #list to store detected brute-force incidents
 window = timedelta(minutes=10)                                          #define the time window for detecting brute-force attempts (10 minutes)
 for ip, times in per_ip_timestamps.items():                             #for each IP and its list of timestamps
+    if not ip:
+        continue                                                        #skip entry if the IP is None
     times.sort()                                                        #sort the timestamps
     n = len(times)                                                      #get the number of timestamps
     i = 0                                                               #initialize the start index
@@ -73,8 +80,20 @@ for ip, times in per_ip_timestamps.items():                             #for eac
         else:                                                            #move to the next timestamp if no incident detected
             i += 1
 # print incidents
-print(f'Detected {len(incidents)} brute-force incidents {incidents}')
-
+console = Console()
+console.print(f'[bold red]Detected {len(incidents)} brute-force incidents:[/bold red]')  #pretty print the number of detected incidents in bold red
+table = Table(title="Brute-force Incidents")               #create a table to display the incidents
+table.add_column("IP", style="cyan", no_wrap=True)         #add columns to the table
+table.add_column("Failed Attempts", style="magenta")
+table.add_column("Time Window", style="green")
+for incident in incidents:                                 #add a row to the table for each incident
+    table.add_row(
+        incident["ip"],
+        str(incident["count"]),
+        f'{incident["first"]} to {incident["last"]}'
+    )
+console.print(table)                                      #pretty print the table to the console
+print(" ")
 
 
 
@@ -100,7 +119,8 @@ plt.tight_layout()                                                              
 plt.savefig("failed_logins.png")                                                    # save chart as image file
 plt.show()                                                                          # display the chart
 
-print("Bar chart saved to failed_logins.png")                                        # notify user chart is saved
+console= Console()
+console.print("[bold red]Bar chart saved to failed_logins.png[/bold red]")                                        # notify user chart is saved
 
 
 #4.	Output results into a structured report.
