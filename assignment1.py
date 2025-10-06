@@ -1,7 +1,6 @@
 from collections import defaultdict     #for creating a dictionary (with default default values) of lists
 from datetime import datetime           #for parsing timestamps
 from datetime import timedelta
-import docx                                        # import
 from docx import Document
 from docx.shared import Inches
 from docx.shared import RGBColor
@@ -159,3 +158,38 @@ for i, incident in enumerate(incidents, 1):
     doc.add_paragraph(f'Time Window: {incident["first"]} to {incident["last"]}\n\n')
 
 doc.save('report.docx')
+
+import typer #importing typer library which helps create cli applications
+
+app = typer.Typer()  # create a typer application instance - this is main objecy for the CLI app
+
+@app.command()  # decorator tells typer that function below should be a cli command 
+def analyze_ips(logfile: str = "CA1_project.log"): # define function called "count_ips" that takes ine parameter, looks thru CA1_project.log file
+    all_unique_ips = set() #creates empty set "unique_ips" to store unique ips, set automatically removed applications
+    unique_failed_ips = set() #creates empty set "unique_failed_ips" to store unique ips with failed logins
+    total_failed_attempts = 0 #counter for total failed login attempts
+    with open(logfile) as f:    #opens  logfile for reading, "with open" automatically closes file
+        for line in f:      # loops thru each line in file one by one 
+            if "from " in line:  #checks if current line contains text "from"
+                parts = line.split()    #splits line into separae words: creates list of words
+                try:        # try to find and extract ip adress (might fail, so use try/except)
+                    idx = parts.index("from")   #find position of word from in parts line 
+                    ip = parts[idx+1]   #gets word immediately after "from" (ip address")
+                    all_unique_ips.add(ip)      #adds ip to set (automatically handles duplicates)
+                    if "Failed password" in line:   #checks if line contains "Failed password"
+                
+                        unique_failed_ips.add(ip)   #adds ip to set of failed ips
+                        total_failed_attempts += 1  #increments counter of total failed attempts
+                except (ValueError, IndexError):    #if smth wrong (like "from" not found or no ip after it) skip line  
+                    continue    #skips to next line on file 
+    typer.echo(f"Overall unique IPs: {len(all_unique_ips)}")        #shows count all unique ips founf in log
+    typer.echo(f"Unique IPs with failed logins: {len(unique_failed_ips)}")   #shows count of unique ips with failed logins
+    typer.echo(f"Total failed login attempts: {total_failed_attempts}")  #shows total number of failed login attempts
+
+    if all_unique_ips: # avoids division by zero if no ips found
+        percentage = (len(unique_failed_ips) / len(all_unique_ips)) * 100  #calculates percentage of unique ips with failed logins
+        typer.echo(f"Percentage of unique IPs with failed logins: {percentage:.2f}%")  #shows percentage formatted to 2 decimal places
+if __name__ == "__main__": #special condition checks if script is being run direactly (not imprted)
+    app()       # if running directly, start typer application
+
+                                
