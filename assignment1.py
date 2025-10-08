@@ -1,16 +1,16 @@
 from collections import defaultdict     #for creating a dictionary (with default default values) of lists
 from datetime import datetime           #for parsing timestamps
-from datetime import timedelta
-import docx
-from docx import Document
-from docx.shared import Inches
-from docx.shared import RGBColor
+from datetime import timedelta          #for working with time differences
+import docx                             #for creating word documents
+from docx import Document               #specifically for Document class
+from docx.shared import Inches          #for setting image sizes in Word
+from docx.shared import RGBColor        #for setting text colours in word
 from rich import print                      #pretty printing
 from rich.console import Console           #for pretty printing to console
 from rich.table import Table             #for pretty printing tables
 import typer #importing typer library which helps create cli applications
 
-LOGFILE= "CA1_project.log"
+LOGFILE= "CA1_project.log"      #defining log file name that we are analyzing
 #1.	Parse log files line by line (files provided).
 
 def parse_auth_line(line):              #function to parse a line from the auth log
@@ -24,35 +24,37 @@ def parse_auth_line(line):              #function to parse a line from the auth 
         ts = None
     ip = None                                                               #initialize ip to None
     event_type = "other"                                                    #initialize event_type to "other"
-    if "Failed password" in line:
-        event_type = "failed"
+if "Failed password" in line:                                               #Check what type of login event this is 
+        event_type = "failed"                                               #mark as failed login attempt
     elif "Accepted password" in line or "Accepted publickey" in line:
-        event_type = "accepted"
+        event_type = "accepted"                                             #mark as successful login
     if " from " in line:                                                    #look for the "from" token to find the IP address
         try:
-            idx = parts.index("from")
-            ip = parts[idx+1]
+            idx = parts.index("from")                                       #find position of "from" in tokens 
+            ip = parts[idx+1]                                               #IP address should be the next token
         except (ValueError, IndexError):                                    #if "from" not found or no token after it, set ip to None#
-            ip = None
-    return ts, ip, event_type
+            ip = None                                                       #set IP to none
+    return ts, ip, event_type                                               #return extracted info
 
 
 #2.  Detect and count failed login attempts, grouping by source IP.
 #main script
+
 if __name__ == "__main__":
-    counts= defaultdict(int)
-    per_ip_timestamps = defaultdict(list)                       #create a dictionary to store timestamps for each IP
+    #create a dictionary to store timestamps for each IP
+    counts= defaultdict(int)                                #count failed attemps per IP with default value at 0
+    per_ip_timestamps = defaultdict(list)                   #store timestamps for each IP with a empty list as default    
     with open(LOGFILE) as f:                                #open the log file
         for line in f:                                      #read each line
             ts, ip, event = parse_auth_line(line)           #parse the line to get timestamp, ip, and event type
             if ip and event == "failed":                    #checks that ip is not null, and that event=="failed"
-                counts[ip] += 1
+                counts[ip] += 1                             #imcrement count for this ip
             if ts:                                          #checks that ts is not null
                 per_ip_timestamps[ip].append(ts)            #add the timestamp to the list for this IP
     console = Console()                                     #create a console object for pretty printing
     console.print("[bold red]Failed login attempts: [/bold red]", dict(counts))  #pretty print the counts dictionary in bold red
 
-print("")
+print("")                                                   #print empty line for space
 
 #3.	Identify possible brute-force attacks (≥ 5 failed logins from one IP within 10 minutes).
 
@@ -73,7 +75,7 @@ for ip, times in per_ip_timestamps.items():                             #for eac
             incidents.append({                                          #add the incident details to the list
                 "ip": ip,
                 "count": count,
-                "first": times[i].isoformat(),
+                "first": times[i].isoformat(),                          #convert to string
                 "last": times[j].isoformat()
             })
             # advance i past this cluster to avoid duplicate overlapping reports:
@@ -84,17 +86,17 @@ for ip, times in per_ip_timestamps.items():                             #for eac
 console = Console()
 console.print(f'[bold red]Detected {len(incidents)} brute-force incidents:[/bold red]')  #pretty print the number of detected incidents in bold red
 table = Table(title="Brute-force Incidents")               #create a table to display the incidents
-table.add_column("IP", style="cyan", no_wrap=True)         #add columns to the table
-table.add_column("Failed Attempts", style="magenta")
-table.add_column("Time Window", style="green")
+table.add_column("IP", style="cyan", no_wrap=True)         #add IP column
+table.add_column("Failed Attempts", style="magenta")       #add count column (magenta)
+table.add_column("Time Window", style="green")             #add time range column (green)
 for incident in incidents:                                 #add a row to the table for each incident
     table.add_row(
-        incident["ip"],
-        str(incident["count"]),
-        f'{incident["first"]} to {incident["last"]}'
+    incident["ip"],                                        #IP address
+    str(incident["count"]),                                #number of attempts
+        f'{incident["first"]} to {incident["last"]}'       #time range
     )
 console.print(table)                                      #pretty print the table to the console
-print(" ")
+print(" ")                                                #Empty line for spacing  
 
 
 
@@ -121,45 +123,48 @@ plt.savefig("failed_logins.png")                                                
 plt.show()                                                                          # display the chart
 
 console= Console()
-console.print("[bold red]Bar chart saved to failed_logins.png[/bold red]")                                        # notify user chart is saved
+console.print("[bold red]Bar chart saved to failed_logins.png[/bold red]")          # notify user chart is saved
 print(" ")
 
 #4.	Output results into a structured report.
 
 
-doc = Document()
+doc = Document()                                                        #create new paragraph
 doc.add_heading("BRUTE FORCE INCIDENTS REPORT", 0)                      # add title to report
                     #make it in bold
 p = doc.add_paragraph()
-run = p.add_run("Total failed login attempts per IP:")
-run.bold = True
+run = p.add_run("Total failed login attempts per IP:")                  #add text
+run.bold = True                                                         #make text bold
 
-for ip, count in counts.items():
+for ip, count in counts.items():                                        #add each IP and its counts to document
     doc.add_paragraph(f"{ip}:   {count} failed attempts")
 
 
-    #make the number of incidents bold
-p = doc.add_paragraph()
-run = p.add_run("Detected {} brute-force incidents".format(len(incidents)))
-run.bold = True
-run.font.color.rgb = RGBColor(255, 0, 0)  # RGB for red
-doc.add_paragraph(" \n\n")
-
-p = doc.add_paragraph()
-run = p.add_run("Total failed login attempts per IP BAR CHART:")
-run.bold = True
-doc.add_picture('failed_logins.png', width=Inches(7))
+#add brute-force incidents summary   
+p = doc.add_paragraph()                                                  #new paragraph
+run = p.add_run("Detected {} brute-force incidents".format(len(incidents))) #add text with count
+run.bold = True                                                              #make the number of incidents bold
+run.font.color.rgb = RGBColor(255, 0, 0)                                     # RGB for red
+doc.add_paragraph(" \n\n")                                                     #add empty lines
 
 
-for i, incident in enumerate(incidents, 1):
-    p = doc.add_paragraph()
-    run = p.add_run(f'Incident {i}:')
-    run.bold = True
-    doc.add_paragraph(f'IP: {incident["ip"]}')
-    doc.add_paragraph(f'Failed Attempts: {incident["count"]}')
-    doc.add_paragraph(f'Time Window: {incident["first"]} to {incident["last"]}\n\n')
+#add bar chart to docuement
+p = doc.add_paragraph()                                                  #new paragraph
+run = p.add_run("Total failed login attempts per IP BAR CHART:")        #add text
+run.bold = True                                                         #make bold 
+doc.add_picture('failed_logins.png', width=Inches(7))                   #add saved chart image
 
-doc.save('report.docx')
+
+#add details fro each detected incident
+for i, incident in enumerate(incidents, 1):                             #number incidents starting from 1
+    p = doc.add_paragraph()                                             #new paragraph
+    run = p.add_run(f'Incident {i}:')                                   #add incident header
+    run.bold = True                                                     #make bold
+    doc.add_paragraph(f'IP: {incident["ip"]}')                          #add ip 
+    doc.add_paragraph(f'Failed Attempts: {incident["count"]}')          #add attempt count
+    doc.add_paragraph(f'Time Window: {incident["first"]} to {incident["last"]}\n\n')    #add time ramge 
+
+doc.save('report.docx')                                                 #save to word doc
 
 
 
