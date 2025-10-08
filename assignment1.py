@@ -105,8 +105,8 @@ print(" ")
 import matplotlib.pyplot as plt     # import plotting library
 
 
-# Get top 10 IPs and their counts
-allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:16]              # get up to 10 IPs with most failed attempts
+# get the ips and counts
+allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:16]              # get the 16 IPs with failed attempts
 ips = [ip for ip, _ in allips]                                                      # list of IPs for the chart, underscore _ means we ignore the second value
 top_counts = [count for _, count in allips]                                         # list of counts for the chart
 
