@@ -1,14 +1,14 @@
 from collections import defaultdict     #for creating a dictionary (with default default values) of lists
 from datetime import datetime           #for parsing timestamps
 from datetime import timedelta          #for working with time differences
-import docx                             #for creating word documents
+import docx                             #for creating word documents (might need to install python-docx package)
 from docx import Document               #specifically for Document class
 from docx.shared import Inches          #for setting image sizes in Word
 from docx.shared import RGBColor        #for setting text colours in word
-from rich import print                      #pretty printing
-from rich.console import Console           #for pretty printing to console
+from rich import print                   #pretty printing (might need to install rich package)
+from rich.console import Console         #for pretty printing to console
 from rich.table import Table             #for pretty printing tables
-import typer #importing typer library which helps create cli applications
+import typer                            #importing typer library which helps create cli applications (might need to install typer package)
 
 LOGFILE= "CA1_project.log"      #defining log file name that we are analyzing
 #1.	Parse log files line by line (files provided).
@@ -24,7 +24,7 @@ def parse_auth_line(line):              #function to parse a line from the auth 
         ts = None
     ip = None                                                               #initialize ip to None
     event_type = "other"                                                    #initialize event_type to "other"
-if "Failed password" in line:                                               #Check what type of login event this is 
+    if "Failed password" in line:                                               #Check what type of login event this is 
         event_type = "failed"                                               #mark as failed login attempt
     elif "Accepted password" in line or "Accepted publickey" in line:
         event_type = "accepted"                                             #mark as successful login
@@ -145,7 +145,7 @@ p = doc.add_paragraph()                                                  #new pa
 run = p.add_run("Detected {} brute-force incidents".format(len(incidents))) #add text with count
 run.bold = True                                                              #make the number of incidents bold
 run.font.color.rgb = RGBColor(255, 0, 0)                                     # RGB for red
-doc.add_paragraph(" \n\n")                                                     #add empty lines
+doc.add_paragraph(" \n\n\n\n\n\n\n\n")                                         #add empty lines
 
 
 #add bar chart to docuement
