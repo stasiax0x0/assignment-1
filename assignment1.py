@@ -9,6 +9,8 @@ from rich import print                   #pretty printing (might need to install
 from rich.console import Console         #for pretty printing to console
 from rich.table import Table             #for pretty printing tables
 import typer                            #importing typer library which helps create cli applications (might need to install typer package)
+import matplotlib.pyplot as plt     # import plotting library
+
 
 LOGFILE= "CA1_project.log"      #defining log file name that we are analyzing
 #1.	Parse log files line by line (files provided).
@@ -103,8 +105,6 @@ print(" ")                                                #Empty line for spacin
 
 #ADDITIONAL FEATURES
 #7.	Visualise findings (bar chart of attacker IPs).
-# --- Optional: Plot bar chart of tot incidents per ip ---
-import matplotlib.pyplot as plt     # import plotting library
 
 
 # get the ips and counts
@@ -129,7 +129,7 @@ print(" ")
 #4.	Output results into a structured report.
 
 
-doc = Document()                                                        #create new paragraph
+doc = Document()                                                        #creates a new and empty word document
 doc.add_heading("BRUTE FORCE INCIDENTS REPORT", 0)                      # add title to report
                     #make it in bold
 p = doc.add_paragraph()
