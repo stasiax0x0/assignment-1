@@ -42,7 +42,7 @@ def parse_auth_line(line):              #function to parse a line from the auth 
 #2.  Detect and count failed login attempts, grouping by source IP.
 #main script
 
-if __name__ == "__main__":
+if __name__ == "__main__":                  #checks if the script runs directly or is imported as a library
     #create a dictionary to store timestamps for each IP
     counts= defaultdict(int)                                #count failed attemps per IP with default value at 0
     per_ip_timestamps = defaultdict(list)                   #store timestamps for each IP with a empty list as default    
