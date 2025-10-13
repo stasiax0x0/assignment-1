@@ -108,7 +108,7 @@ print(" ")                                                #Empty line for spacin
 
 
 # get the ips and counts
-allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:16]              # get the 16 IPs with failed attempts
+allips = sorted(counts.items(), key=lambda x: x[1], reverse=True)              # get the IPs with failed attempts
 ips = [ip for ip, _ in allips]                                                      # list of IPs for the chart, underscore _ means we ignore the second value
 top_counts = [count for _, count in allips]                                         # list of counts for the chart
 
